@@ -1,0 +1,367 @@
+% BURST (\method): out-of-distribution detection with ONE truncated forward pass of a frozen denoiser and NO training:
+%   two descriptors of one pass of the frozen denoiser (f = unit [channel mean, channel std] of the upright block U; z = the amplitude
+%   profile, one number per block up to the exit block X), a bank of the train images in the eight orientations of the square
+%   (u = as given, o = the seven others), and per descriptor g
+%       J_g = d_g min_R {2 lu_R - lo_R - m_R},   lu_R = -log r_R(g; u),  lo_R = -log r_7R(g; o),     score = J_f + J_z.
+%   26f WIP, Japanese; MIRU 2025 class.  Image splits: train / val1 / val2 (development) / test (main text) / test' (supplement); server names test2 / testc.
+%   The main text (to the acknowledgement) is kept within six pages; the references and the supplement follow.
+% build: python3 gen/mk.py && python3 gen/mk_schem.py && latexmk -r latexmkrc main.tex
+%   numbers.tex, tab_*.tex, supp_*.tex, figs/fig_profile.tex and figs/fig_scatter.tex are written by gen/mk.py from data/*.json.
+%   figs/fig_idea.tex and figs/fig_method_c.tex (the points and circles of the two schematic figures) are written by gen/mk_schem.py.
+\documentclass[MIRU,submit]{miru2025j}
+\usepackage[dvipdfmx]{graphicx}
+\usepackage[dvipdfmx,table]{xcolor}
+\definecolor{firstblue}{RGB}{189,215,238}   % cells where Ours ties or beats the best prior method (light blue)
+\definecolor{lossred}{RGB}{246,200,192}      % per-pair tables: the comparison value is above Ours (light red)
+\definecolor{navyc}{RGB}{31,58,122}\definecolor{redc}{RGB}{192,57,43}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{adjustbox}
+\usepackage{float}
+\usepackage{array}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,calc,fit,decorations.pathreplacing,shapes.geometric}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.16}
+\usepgfplotslibrary{groupplots}
+\makeatletter
+\renewcommand{\signame}{26f WIP中間発表}
+\renewcommand{\MIRUPreface}{}
+\makeatother
+\newcommand{\Dm}{\mathbf{D}}            % a rotation / reflection of the image (a matrix: bold)
+\newcommand{\testp}{test$'$}
+\newcommand{\method}{BURST}               % the name of the method: change it here (and nowhere else)
+\newcommand{\figlab}{\fontsize{6.2}{7.6}\selectfont}   % the labels inside the hand-drawn figures
+\makeatletter\newcommand{\inputrows}[1]{\@@input #1 }\makeatother
+\renewcommand{\eqref}[1]{(\ref{#1})}
+\renewcommand{\dbltopfraction}{0.95}\renewcommand{\topfraction}{0.95}\renewcommand{\textfraction}{0.05}\renewcommand{\dblfloatpagefraction}{0.9}\setcounter{dbltopnumber}{3}\setcounter{topnumber}{3}
+\renewcommand{\floatpagefraction}{0.9}
+\makeatletter
+\renewenvironment{figure*}{\@floatenv\capwidth\textwidth\ecapwidth\textwidth\abovecaptionskip1mm\belowcaptionskip\z@\@dblfloat{figure}}{\end@dblfloat}
+\renewenvironment{table*}{\@floatenv\capwidth\textwidth\ecapwidth\textwidth\abovecaptionskip\z@\belowcaptionskip1mm\@dblfloat{table}}{\end@dblfloat}
+\renewenvironment{table}{\@floatenv\capwidth\columnwidth\ecapwidth\columnwidth\abovecaptionskip\z@\belowcaptionskip1mm\@float{table}}{\end@float}
+\makeatother
+\input{numbers}
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd{\@makecaption}{\vskip-1.5mm}{\vskip0.3mm}{}{\PackageError{main}{makecaption not patched}{}}
+\setlength{\@fptop}{0pt}\setlength{\@fpbot}{0pt plus 1fil}
+\makeatother
+\hyphenation{FashionMNIST ImageNet EigenScore DiffPath}
+\raggedbottom
+\begin{document}
+\title{\textbf{\method：最近傍だけで内容と向きを測る\\拡散モデルの分布外検知}}
+\affiliate{sfc}{慶應義塾大学 総合政策学部B3 中澤・大越研究室 d-hacks}
+\affiliate{sfc2}{慶應義塾大学大学院 政策・メディア研究科}
+\author{omote}{}{sfc}[]
+\author{親:zackeyさん}{}{sfc2}[]
+\maketitle
+
+\section*{概要}
+拡散モデルの中間特徴を, 分布内の学習用の画像(train 画像)との近さで判定する方法は, 1回の順伝播で, 尤度や統計量による分布外検知を上回る. しかし, この特徴は画像の向きを見分けにくく, 向きを補うために回転や鏡像を当てる分類器を学習すると, 凍結したモデルをそのまま使える利点が失われる. 本研究は, 学習を一切行わずに内容と向きの両方を測る \method{} を提案する. 鍵は, 向きを変えた train 画像が, 分布外の画像を1枚も使わずに手に入る「分布内でない画像」の見本になることである. train 画像を8通りの向きでノイズ除去器に通しておき, 入力が正立の train 画像と向きを変えた train 画像のどちらに近いかを, 最近傍までの距離の比だけで読む. スコアは, 2つの記述子のそれぞれについて「正立の train 画像の密度の対数」と「正立と向き替えの密度の比の対数」を足したもので, 調整する重みも, 学習するパラメータもない. 記述子を読み終えたブロックで順伝播を打ち切るので, その計算時間は1回の順伝播の\nPassX{}倍である. 5つの分布内データセットの51組で, 自然画像の分布外集合での平均 AUROC は\nOursT\%であり, 同じ拡散モデルを用いる先行研究の最良(\nPriorT\%)を\nGapPriorT{}ポイント上回り, 回転と鏡像の分類器を学習して用いる構成(\nTrainedT\%)も下回らない. 一方, 上下反転した分布内の画像の検知(\nUdT\%)は, 学習した分類器を用いる構成(\nTrainedUdT\%)に及ばない.
+
+\section{はじめに}
+外部のデータで学習した基盤モデル~\cite{oquab2024dinov2,radford2021clip}を前提にできない領域では, 対象の領域のラベルのない画像で学習した生成モデル1つで, 分布外検知まで完結することに意義がある. 拡散モデル~\cite{song2021score,karras2022edm}は, 生成のために学習したノイズ除去器を凍結したまま検知に使える. 尤度や統計量による方法~\cite{nalisnick2019deep,serra2020input,mahmood2021msma,heng2024diffpath,alexis2026gepc,shoushtari2026eigenscore}は分布内データセットによって大きく崩れ, 1枚に10回から数百回のネットワークの評価を要する. これに対し, ノイズ除去器の中間特徴~\cite{xiang2023ddae}をチャネルごとの平均と標準偏差にまとめ, train 画像に当てはめた対角ガウスや kNN で判定する CFS~\cite{rouzoumka2026cfs}は, 1回の順伝播でこれらを上回る.
+
+\begin{figure*}[t]\centering
+\begin{adjustbox}{max width=\textwidth}\input{figs/fig_method}\end{adjustbox}
+\caption{\method{} の概要. (a) テスト時は, 凍結したノイズ除去器の1回の順伝播を打ち切りブロック X で止め, 正立ブロック U の出力の平均と標準偏差 $f$ と, X までの各ブロックの出力から数値を1つずつ読んだ並び $z$ を求める. (b) 事前に, train 画像を8通りの向きで同じように通し, そのまま(正立)の $N$ 枚をバンク $u$, 向きを変えた $7N$ 枚をバンク $o$ とする. (c) 記述子ごとに, $u$ の $R$ 番目の最近傍までの距離 $r^{u}_{R}$ と, $o$ の $7R$ 番目の最近傍までの距離 $r^{o}_{R}$ から, 密度と比を読んで足す(図は $R=1$ の場合). ブロックの数と点の配置は模式的なものである.}
+\label{fig:method}
+\end{figure*}
+
+ところが, チャネルごとの統計量は特徴マップの位置を並べ替えても変わらないので, 画像の向きの情報が弱い. 内容は分布内と同じで向きだけが異なる「上下反転した分布内の画像」は, CFS の kNN ヘッドでも, 平均\nPriorUdT\%でしか見分けられない(\ref{sec:main}節). 向きを補う素直な方法は, 回転や鏡像を当てる分類器を学習することである~\cite{golan2018geometric,hendrycks2019ss,tack2020csi}. しかし, それは勾配による学習と追加のネットワークを持ち込み, 学習済みのモデルを凍結したまま使えるという利点を損なう.
+
+本研究は, 学習を一切行わずに向きまで測る. 鍵は, 向きを変えた train 画像を, 近傍を探す相手に加えることである(図~\ref{fig:method}). train 画像を8通りの向き(4つの回転と, その鏡像)でノイズ除去器に通しておけば, 入力が正立の train 画像と向きを変えた train 画像のどちらに近いかは, それぞれの最近傍までの距離を比べるだけで読める. 2つの距離の比の対数は, kNN による密度比の推定~\cite{wang2009divergence}であり, 入力が正立である事後確率のオッズにあたる. これを, 向きを最もよく見分けるブロック(正立ブロック)の平均と標準偏差 $f$ と, 各ブロックの出力から数値を1つだけ読んだ並び $z$ の, 2つの記述子で読む. スコアは, 記述子ごとに「正立の train 画像の密度の対数」と「正立と向き替えの密度の比の対数」を足したもので, 重みも, 学習するパラメータもない. 記述子を読み終えたブロックで, 順伝播を打ち切る. これを \method{} と呼ぶ.
+
+5つの分布内データセットの51組で, 自然画像の分布外集合での平均 AUROC は\nOursT\%であり, 同じ拡散モデルを用いる先行研究の最良(CFS の kNN ヘッド, \nPriorT\%)を\nGapPriorT{}ポイント上回る. 比の代わりに, 回転と鏡像を当てる2つの分類器を学習して用いる構成(\nTrainedT\%)も下回らない. 順伝播の計算時間は, 1回の順伝播の\nPassX{}倍である(記述子の計算とバンクの探索を含めても\nAllX{}倍). 本研究の貢献は次の3つである.
+\begin{itemize}
+\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}
+\item 向きを変えた train 画像をバンクに加え, 最近傍までの距離の比で向きを読むスコア. 勾配による学習も, 追加のネットワークも, ラベルも, 分布外の画像も用いない.
+\item 51組で同じ拡散モデルを用いる先行研究の最良を, CFS の評価手順の12組で文献の公表値の最良を上回ること. 順伝播は, 途中で打ち切る1回である.
+\item 学習した分類器を用いる構成との比較と, 各部分の寄与の分析. 上下反転と鏡像の検知が学習した分類器に及ばないという限界も示す.
+\end{itemize}
+
+\section{関連研究}
+\label{sec:related}
+\textbf{拡散モデルによる分布外検知.} 深層生成モデルは, 分布外の画像に分布内より高い尤度を与えることがある~\cite{nalisnick2019deep}. これに対し, 典型集合による検定~\cite{nalisnick2019typ}, 入力の複雑さによる補正~\cite{serra2020input}, 複数のスケールでのスコアの大きさ~\cite{mahmood2021msma}, 再構成の誤差~\cite{graham2023ddpmood}, 生成の軌跡の統計量~\cite{heng2024diffpath}, 変換に対する事後平均の一貫性~\cite{alexis2026gepc}, 事後共分散の固有値~\cite{shoushtari2026eigenscore}, スコアの大きさと曲率~\cite{barkley2026scoped}, 局所的な内在次元~\cite{kamkari2024geometric}が提案されているが, 多くは1枚あたり数回から数百回のネットワークの評価を要する. CFS~\cite{rouzoumka2026cfs}は, 低いノイズで1回通した中間特徴を, 対角ガウスや, 識別的な分類器の特徴について提案された kNN~\cite{sun2022knn}で判定する. 本研究は同種の特徴を用いるが, 近傍を探す相手に向きを変えた train 画像を加える点と, ブロックごとに数値を1つだけ読んだ並びを第2の記述子とする点が異なる.
+
+\textbf{向きと密度比.} 画像の回転などの幾何変換を当てる分類器を分布内のデータで学習する方法~\cite{golan2018geometric,hendrycks2019ss}や, 回転した画像を別の画像として扱う対照学習~\cite{tack2020csi}は, 向きを変えた画像を学習に用いる(鏡像にも向きの手がかりが残る~\cite{lin2020chirality}). 本研究は, 学習には用いず, 近傍を探すバンクに加えるだけである. また, 背景を表すモデルとの尤度比~\cite{ren2019likelihood}や補助の外れ値データ~\cite{hendrycks2019oe}は, 分布内らしさを別の分布と比べて測る. 本研究の比は, 「向きを変えた分布内の画像」を比べる相手とする密度比を, 2つの標本への最近傍の距離の比~\cite{wang2009divergence,sugiyama2012density}で推定するものであり, 別のモデルも外れ値データも要らない.
+
+\section{準備}
+\label{sec:prep}
+\textbf{問題設定.} 分布内の画像の密度を $p(x)$ とし, そこから得られた $N$ 枚の train 画像 $x_1,\ldots,x_N$ が与えられる. 入力画像 $x$ に分布内らしさを表すスコア $s(x)$ を与え, しきい値より小さい入力を分布外と判定する. 評価の指標は AUROC であり, 分布内の画像の95\%を残すときに分布外の画像が通過する割合(FPR95)も示す.
+
+\textbf{ノイズ除去器の中間特徴.} 拡散モデルのノイズ除去器は, ノイズを加えた画像から元の画像を推定するネットワークであり, 多くは, エンコーダで解像度を下げてデコーダで上げる U-Net~\cite{ronneberger2015unet}である. 入力側から数えて $h$ 番目のブロックの出力(特徴マップ)の, チャネル $c$, 位置 $(i,j)$ の値を $h_{c,i,j}$ と書く. 画像 $x$ に小さなノイズ $\sigma_1\varepsilon$ ($\sigma_1=0.01$. $\varepsilon$ はすべての画像に共通の1枚)を加えて, ノイズ除去器に1回通す.
+
+\textbf{kNN による密度の推定.} 入力の特徴から, $N$ 個の train 画像の特徴のうち $R$ 番目に近いものまでの距離を $r_R(x)$ とする. 特徴が $d$ 次元の広がりをもつとき, 半径 $r_R(x)$ の球の体積は $V r_R(x)^{d}$ ($V$ は半径1の球の体積)であり, そこに $N$ 個のうち $R$ 個が入っているので, 密度は
+\begin{equation}
+\hat{p}(x)=\frac{R}{N V\, r_R(x)^{d}}
+\label{eq:knn}
+\end{equation}
+と推定できる~\cite{loftsgaarden1965knn}. その対数は, 定数を除いて $-d\log r_R(x)$ に等しい.
+
+\section{提案手法：\method}
+\label{sec:method}
+train 画像と, それで学習した拡散モデルのノイズ除去器だけを用いる. 勾配で学習するものも, 当てはめる分類器もなく, train 画像から求めるのは, バンクのほかには平均, 標準偏差, 次元といった統計量だけである.
+
+\subsection{2つの記述子}
+1回の順伝播から, 2つの記述子を読む(図~\ref{fig:method}a). 第1の記述子 $f(x)$ は, 正立ブロック U (\ref{sec:blocks}節)の出力の, チャネルごとの位置についての平均と標準偏差を並べ, 長さ1に正規化したベクトルである. 距離には, 単位球面上の2点を結ぶ弦の長さを用いる.
+
+第2の記述子は, ブロックごとに数値を1つだけ読む. ブロック $h$ の出力の, チャネル $c$ の位置についての平均を $\mu_c$, チャネルの数を $C_h$ として,
+\begin{equation}
+a_h(x)=\frac{1}{C_h}\sum_{c=1}^{C_h}\log\max_{i,j}\,\bigl|h_{c,i,j}-\mu_c\bigr|
+\label{eq:amp}
+\end{equation}
+を振幅と呼ぶ. チャネルごとに, 平均から最も外れた値の大きさの対数をとり, チャネルについて平均したものである. 入力側から打ち切りブロック X (\ref{sec:blocks}節)までの振幅を, ブロックごとに正立の train 画像での平均 $\bar{a}_h$ と標準偏差 $\mathrm{sd}_h$ でそろえて並べ,
+\begin{equation}
+z(x)=\Bigl(\frac{a_1(x)-\bar{a}_1}{\mathrm{sd}_1},\,\ldots,\,\frac{a_{\mathrm{X}}(x)-\bar{a}_{\mathrm{X}}}{\mathrm{sd}_{\mathrm{X}}}\Bigr)
+\label{eq:z}
+\end{equation}
+とする. 距離はユークリッド距離である. $z$ の長さは分布内データセットごとに\nNzMin{}から\nNzMax{}であり, $f$ (数百から千次元)よりずっと短い.
+
+\begin{figure}[t]\centering
+\begin{adjustbox}{max width=\columnwidth}\input{figs/fig_idea}\end{adjustbox}
+\caption{密度と比が見るもの(模式図, $R=1$ の場合). 実線の円は正立の train 画像の最も近い要素を, 破線の円は向きを変えた train 画像の7番目に近い要素を通る. (i) 分布内の画像は $u$ に近く, $o$ から遠い. (ii) 向きだけが異なる画像は $o$ のほうに近く, 比が下がる. (iii) 内容が異なる画像は $u$ から遠く, 密度が下がる.}
+\label{fig:idea}
+\end{figure}
+
+\subsection{8通りの向きのバンク}
+正方形の画像を自分自身に重ねる変換は, 4つの回転と, 左右反転をしてから回転する4通りの, 計8通りである. その集合を $\mathcal{D}$, 恒等変換を除く7通りを $\mathcal{D}^{*}$ と書く. 事前に, train 画像 $x_1,\ldots,x_N$ と, それを変換した $\Dm x_i$ ($\Dm\in\mathcal{D}^{*}$)を, テスト時と同じノイズと打ち切りでノイズ除去器に通し, 記述子を求めておく(図~\ref{fig:method}b). ノイズは回転も反転もしない. そのままの $N$ 枚の記述子の集まりを正立のバンク $u$, 向きを変えた $7N$ 枚の記述子の集まりを向き替えのバンク $o$ と呼ぶ. 分布内に標準の向きがあれば, $\Dm x_i$ は分布内にほとんど現れない画像であり, バンク $o$ は「内容は分布内と同じで, 分布内ではない画像」の見本になる.
+
+\subsection{密度と, 向きの比}
+記述子 $g\in\{f,z\}$ のそれぞれについて, $g(x)$ から, バンク $u$ の $R$ 番目に近い要素までの距離を $r^{u}_{R}(x)$, バンク $o$ の $7R$ 番目に近い要素までの距離を $r^{o}_{R}(x)$ とする. $o$ は $u$ の7倍の要素をもつので, どちらの球にも, バンクの要素の $R/N$ が入る. 式~\eqref{eq:knn}により, 2つのバンクのもとの分布の密度 $p_u$, $p_o$ は, 共通の定数 $\kappa$ を用いて
+\begin{equation}
+\log\hat{p}_u(x)=-d\log r^{u}_{R}(x)+\kappa
+\label{eq:pu}
+\end{equation}
+\begin{equation}
+\log\hat{p}_o(x)=-d\log r^{o}_{R}(x)+\kappa
+\label{eq:po}
+\end{equation}
+と推定でき, 差をとると, 密度の比の対数が距離の比の対数になる.
+\begin{equation}
+\log\frac{\hat{p}_u(x)}{\hat{p}_o(x)}=d\,\bigl\{\log r^{o}_{R}(x)-\log r^{u}_{R}(x)\bigr\}
+\label{eq:ratio}
+\end{equation}
+これは, 2つの標本への最近傍の距離から分布の隔たりを推定する方法~\cite{wang2009divergence}で, 1点ごとに足し合わされる量である.
+
+\textbf{比の意味.} 正立の分布内画像を, 8通りの向きに等確率で変換した画像の混合を考える. この混合のもとで, 記述子の値が $g(x)$ である画像が変換されていない(正立である)事後確率は, ベイズの定理により $p_u(x)/\{p_u(x)+7p_o(x)\}$ であり, そのオッズの対数は
+\begin{equation}
+\log\frac{P(\text{正立}\mid x)}{1-P(\text{正立}\mid x)}=\log\frac{p_u(x)}{p_o(x)}-\log 7
+\label{eq:odds}
+\end{equation}
+である. 式~\eqref{eq:ratio}は, 定数を除いて, 入力が正立であるオッズを最近傍の距離だけで読んだものであり, 回転や鏡像を当てる分類器が学習によって求める事後確率を, 学習なしに置き換える.
+
+\textbf{2つを足す.} 密度 [式~\eqref{eq:pu}]は, 入力が正立の train 画像に近いかを表し, 内容が異なる画像で下がる. 比 [式~\eqref{eq:ratio}]は, 入力が向きを変えた train 画像より正立の train 画像に近いかを表し, 向きだけが異なる画像で下がる(図~\ref{fig:idea}. 実際の値は補足資料の図~\ref{fig:scatter}). 分布外の入力はあらかじめ分からないので, 2つを足す.
+
+\subsection{スコア}
+\label{sec:score}
+$\ell^{u}_{R}(x)=-\log r^{u}_{R}(x)$, $\ell^{o}_{R}(x)=-\log r^{o}_{R}(x)$ と書く. 式~\eqref{eq:pu}と式~\eqref{eq:ratio}の和は, 定数を除いて $d\,\{2\ell^{u}_{R}(x)-\ell^{o}_{R}(x)\}$ である. 近傍の順位 $R$ は, 分布外の画像を使わずに決める. train 画像での $2\ell^{u}_{R}-\ell^{o}_{R}$ の平均を $m_R$ として,
+\begin{equation}
+J_g(x)=d_g\min_{R}\bigl\{2\ell^{u}_{R}(x)-\ell^{o}_{R}(x)-m_R\bigr\}
+\label{eq:J}
+\end{equation}
+とする. $R$ は1から1000までの10通り(1, 2, 5, 10, 20, 50, 100, 200, 500, 1000)である. 小さい $R$ はごく近くの train 画像との近さを, 大きい $R$ は広い範囲での密度を見る. $m_R$ を引いて水準をそろえたうえで, その画像が最も分布内らしくない値をとる. $m_R$ は, train 画像から選んだ5000枚について, その画像自身とその7通りの変換をバンクから除いて求める. スコアは, 2つの記述子の和
+\begin{equation}
+s(x)=J_f(x)+J_z(x)
+\label{eq:score}
+\end{equation}
+である. 重みは調整しない. 2つの項の交換比は, 次元 $d_f$ と $d_z$ が決める.
+
+\textbf{次元.} $d$ 次元の広がりでは, $R$ 番目の最近傍までの距離が $R^{1/d}$ に比例して伸びるので, train 画像での $\ell^{u}_{R}$ の平均は, $\log R$ に対して傾き $-1/d$ の直線になる. そこで $d_g$ を, $R=1$ から20までの5点に当てはめた直線の傾きの逆数の符号を変えたものとする. 分布内データセットごとに, $d_f$ は\nDimFMin{}から\nDimFMax, $d_z$ は\nDimZMin{}から\nDimZMax{}である.
+
+\textbf{密度と比を別々に読む場合.} 分析のために, 密度だけを同じ読み方で求めた $T_g=d_g\min_R\{\ell^{u}_{R}-m^{T}_{R}\}$ と, 比だけを求めた $Q_g=d_g\min_R\{\ell^{u}_{R}-\ell^{o}_{R}-m^{Q}_{R}\}$ も用いる($m^{T}_{R}$, $m^{Q}_{R}$ は, それぞれの中身の train 画像での平均). $T_f$ は, 正立ブロックの特徴だけで判定する kNN にあたる.
+
+\subsection{正立ブロックと打ち切りブロック}
+\label{sec:blocks}
+\textbf{正立ブロック.} $f$ を読むブロックは, 向きを最もよく見分けるブロックとする. ブロック $b$ の出力の平均と標準偏差を記述子としたときの, 正立のバンクへの $R$ 番目の最近傍の距離の対数の符号を変えたものを $\ell_{b,R}$ とする. train 画像から選んだ5000枚 $x'_1,\ldots,x'_M$ について, そのままの画像と, 変換した画像を $\ell_{b,R}$ で見分ける AUROC の平均
+\begin{equation}
+\begin{split}
+A_{b,R}=\frac{1}{7}\sum_{\Dm\in\mathcal{D}^{*}}\mathrm{AUROC}\bigl[&\{\ell_{b,R}(x'_j)\}_{j},\\
+&\{\ell_{b,R}(\Dm x'_j)\}_{j}\bigr]
+\end{split}
+\label{eq:A}
+\end{equation}
+を求め(その画像自身は近傍から除く), $\max_R A_{b,R}$ が最大のブロックを正立ブロック U とする. 入力に近いブロックと出力に近いブロックは, 画像を回転・反転しても特徴マップが同じように回転・反転するだけで, 平均と標準偏差は向きを区別しない. そのあいだのブロックは, 画像の広い範囲をまとめて見るので, 分布内の画像に多い配置に合わせた応答をもち, 向きを区別する. 選ばれるのは, 4つの分布内でデコーダの $8{\times}8$ のブロック, FashionMNIST でエンコーダの $8{\times}8$ のブロックである(補足資料の表~\ref{tab:models}).
+
+\textbf{打ち切りブロック.} 向きを変えたときの振幅のずれは, 解像度の低いブロックから現れ, 正立ブロックより先のデコーダのブロックで大きい(\ref{sec:what}節). そこで $z$ は, 正立ブロックの2倍の解像度をもつデコーダのブロックのうち, 最後のものまで読む. これを打ち切りブロック X と呼び, 順伝播はここで止める.
+
+\section{実験}
+\subsection{設定}
+\textbf{データ.} 分布内データセットは, CIFAR-10, SVHN, CelebA, ImageNet-64, FashionMNIST の5つである. 公開されている学習済みの拡散モデル~\cite{karras2022edm,kamkari2024geometric,nichol2021improved,karras2024edm2}を変更せずに用い, FashionMNIST だけは本研究で学習した. 分布外の集合は, 他のデータセットの画像の集合(以下, 自然画像の分布外集合. 分布内ごとに9, 9, 9, 7, 4集合), 上下反転した分布内の画像, 合成画像(一様ノイズと定数画像. ImageNet-64 を除く)であり, 分布内との組は計51組である(一覧は補足資料の表~\ref{tab:pairst}). 左右反転した分布内の画像も調べる.
+
+\textbf{画像の分け方.} 画像は, 互いに重ならない train, val1, val2, test 画像に分ける. train 画像(5万枚. ImageNet-64 は1万枚)は, バンクと, 正立ブロック, $d_g$, $m_R$ の計算に用いる. val1 画像は, 分布内の画像と, 評価に用いない分布外データセット(STL-10, GTSRB, Flowers-102 など)の画像であり, val2 画像は, 分布内と各分布外集合から取り分けた画像である. \method{} の記述子と順位の読み方は, この2つで定めた. 評価は test 画像(各集合500枚)で, 確定した手法について1回行った. ただし, test 画像は, 学習した分類器を用いる構成や, 本手法の以前の構成の評価にも用いてきた画像であり, 一度も見ていない画像ではない. 別に取り分けた画像での同じ評価は, 補足資料に示す.
+
+\textbf{比較手法.} 同じ拡散モデルを用いる先行研究として, 尤度(NLL~\cite{song2021score}), 入力の複雑さによる補正(IC~\cite{serra2020input}. 符号長に PNG と JPEG2000 を用いる2通り), 典型集合による検定(TT~\cite{nalisnick2019typ}), MSMA 型~\cite{mahmood2021msma}, DiffPath~\cite{heng2024diffpath}, GEPC~\cite{alexis2026gepc}, EigenScore~\cite{shoushtari2026eigenscore}の8手法と, CFS~\cite{rouzoumka2026cfs}(対角ガウスと kNN ヘッドの2通り. 公式コードの手順で同じ拡散モデルと train 画像に当てはめた)の計10手法と比べる. 回転の予測~\cite{hendrycks2019ss}(train 画像で一から学習した ResNet-18)は, 拡散モデルを用いない参考として示す.
+
+\textbf{評価.} AUROC は, 分布内の画像と分布外の集合1つとの組ごとに求め, 分布内データセットごとに, 自然画像の分布外集合について平均する. \method{}, CFS, GEPC, EigenScore は, 画像に加えるノイズ $\varepsilon$ を決める乱数の種3つの平均, ほかの手法は1回の値である. 手法どうしの比較では, 画像を復元抽出するブートストラップ~\cite{efron1979bootstrap}(2000回)で AUROC の差の95\%信頼区間を求め, それが0を含まず差が0.05ポイント以上のときを勝ち/負け, ほかを引き分けとする.
+
+\begin{table*}[t]\centering\scriptsize\setlength{\tabcolsep}{3.2pt}\renewcommand{\arraystretch}{0.9}
+\caption{比較手法との比較(AUROC, \%. test 画像, 各集合500枚). 左の5列：分布内ごとの, 自然画像の分布外集合の平均. 上下反転：上下反転した分布内の画像の, 5つの平均. FPR95：自然画像の分布外集合での5つの平均(低いほどよい). 勝/分/負：全51組での, \method{} のその行に対する結果. 上の10行が同じ拡散モデルを用いる先行研究で, 参考の行は順位づけしない. $\dagger$：先行研究の中の最良. \protect\colorbox{firstblue}{\textbf{水色の太字}}：\method{} がそれに並ぶか上回る列. 順伝播：1枚あたりの回数(+は逆伝播). $\ddagger$：途中で打ち切るので, 打ち切りまでの計算時間を1回の順伝播の時間で割った値(5つのモデルの平均).}
+\label{tab:main}
+\begin{adjustbox}{max width=\textwidth}\begin{tabular}{@{}lcccccccccc@{}}\toprule
+& \multicolumn{5}{c}{分布内(自然画像の分布外集合の平均)} & & & & \method{} の & \\\cmidrule(lr){2-6}
+手法 & CIFAR-10 & SVHN & CelebA & ImageNet-64 & FashionMNIST & 5つの平均 & 上下反転 & FPR95 & 勝/分/負 & 順伝播\\\midrule
+\inputrows{tab_main.tex}
+\end{tabular}\end{adjustbox}
+\end{table*}
+
+\subsection{比較手法との比較}
+\label{sec:main}
+表~\ref{tab:main}に結果を示す. 自然画像の分布外集合での平均 AUROC は, \method{} が\nOursT\%(95\%信頼区間\nOursLoT--\nOursHiT)で, 同じ拡散モデルを用いる先行研究の最良である CFS の kNN ヘッド(\nPriorT\%)を\nGapPriorT{}ポイント(\nGapPriorLoT--\nGapPriorHiT)上回る. 差は, 先行研究が飽和していない分布内で大きく, CIFAR-10 で\nOursCtenT{}対\nPriorBestCtenT\%, ImageNet-64 で\nOursInT{}対\nPriorBestInT\%である. FPR95 の平均は\nFprT\%で, 先行研究の最良(\nPriorFprT\%)の半分以下である. 上下反転した分布内の画像では\nUdT\%であり, 先行研究の最良(EigenScore, \nEigenUdT\%)を上回るが, 回転を当てる分類器を学習する回転の予測(\nRotUdT\%)には及ばない.
+
+弱点は SVHN である. \method{} が先行研究のいずれかに負けた\nNLossPairs{}組のうち\nNLossSvhn{}組は, SVHN を分布内とする組であり(残りは ImageNet-64 に対する iNaturalist), SVHN を分布内とする平均(\nOursSvhnT\%)は DiffPath(\nPriorBestSvhnT\%)に及ばない(\ref{sec:limits}節).
+
+\begin{table}[t]\centering\scriptsize\setlength{\tabcolsep}{1.8pt}\renewcommand{\arraystretch}{0.92}
+\caption{各部分の寄与と, 順伝播を止める位置(test 画像, 5つの分布内の平均. AUROC と FPR95, \%). 自然：自然画像の分布外集合. 上下, 左右：その反転をした分布内の画像. 勝/分/負：全51組での, \method{} のその行に対する結果. $T_g$, $Q_g$：密度と比を別々に読んだもの(\ref{sec:score}節). 参考：比の代わりに, 学習した2つの MLP を用いる構成. 順伝播：表~\ref{tab:main}の $\ddagger$ と同じ.}
+\label{tab:parts}
+\begin{tabular}{@{}lcccccc@{}}\toprule
+構成 & 自然 & 上下 & 左右 & FPR95 & 勝/分/負 & 順伝播\\\midrule
+\inputrows{tab_parts.tex}
+\end{tabular}
+\end{table}
+
+\begin{figure*}[t]\centering
+\input{figs/fig_profile}
+\caption{振幅の並び(test 画像, ノイズの種0. グループごとの平均). 横軸は入力側から数えたブロック, 縦軸は振幅 [式~\eqref{eq:amp}]を, 正立の train 画像での平均を0, 標準偏差を1にそろえた値である. 点線は正立ブロック U と打ち切りブロック X. 向きを変えると(赤), 入力に近いブロックでは変わらず, U より先で大きく下がる. 自然画像の分布外集合(黒)も, SVHN を除いて同じ側へ下がる(SVHN の解像度 $1{\times}1$ の3つのブロックでは, 振幅がどの画像でも同じ値なので, 0としている).}
+\label{fig:profile}
+\end{figure*}
+
+\subsection{各部分の寄与と, 順伝播を止める位置}
+\label{sec:parts}
+\textbf{向きを変えたバンクの効果.} 表~\ref{tab:parts}に, スコアの各部分を除いたときと, 順伝播を止める位置を変えたときの結果を示す. 向きを変えたバンクを使わず, 2つの記述子の密度だけを足すと($T_f+T_z$), 平均は\nNoOriT\%であり, 正立ブロックの密度だけ($T_f$, \nDensT\%)を上回らない. 比を加えた \method{} は, これより\nGapNoOriT{}ポイント(\nGapNoOriLoT--\nGapNoOriHiT)高く, 上下反転は\nNoOriUdT\%から\nUdT\%に上がる. 向きを変えた train 画像との比は, 向きだけが異なる画像だけでなく, 自然画像の分布外集合の検知にも効く.
+
+\textbf{2つの記述子.} $J_f$ だけでは\nOnlyJfT\%, $J_z$ だけでは\nOnlyJzT\%であり, 2つを足すと, $J_f$ だけの場合を\nGapOnlyJfT{}ポイント上回る. $f$ では密度だけを読む構成($T_f+J_z$)は\nTfJzT\%で, 自然画像ではほとんど変わらないが, 上下反転は\nTfJzUdT\%に下がる. $f$ の比は, 主に向きだけが異なる画像に効く. 密度と比を別々に読んで足しても($T_f+Q_f+T_z+Q_z$, \nFourT\%), 式~\eqref{eq:J}より\nGapFourT{}ポイント高いだけなので, 記述子ごとに式が1つで済む式~\eqref{eq:J}を用いる.
+
+\textbf{順伝播を止める位置と計算時間.} 正立ブロック U で止めて, $z$ を U までのブロックで読むと\nStopUT\%であり, X まで読む場合との差は\nGapStopUT{}ポイント(\nGapStopULoT--\nGapStopUHiT)である. このときも, 先行研究の最良を\nGapStopUPriorT{}ポイント(\nGapStopUPriorLoT--\nGapStopUPriorHiT)上回る. 正立ブロックの2倍の解像度に上がった最初のブロックで止めると, X まで読む場合と変わらない(\nStopAT\%). X までの順伝播の時間は, 1回の順伝播(最後のブロックまで)の\nPassX{}倍(モデルによって\nPassXMin{}から\nPassXMax{}倍), U までは\nPassU{}倍である. 記述子の計算と2つのバンクの探索を加えた全体でも\nAllX{}倍である. バンクの要素は train 画像の8倍になるが, 探索は全体の\nSearchShareMin{}から\nSearchShareMax\%にとどまる(補足資料の表~\ref{tab:time}).
+
+\textbf{学習した分類器との比較.} 比の代わりに, 回転と鏡像を当てる2つの MLP を学習して用いる構成(全順伝播を要する)は, 自然画像の分布外集合で\nTrainedT\%である. \method{} は, 学習なしで, これより\nGapTrainedT{}ポイント(\nGapTrainedLoT--\nGapTrainedHiT)高い. 上回るのは ImageNet-64(\nOursInT{}対\nTrainedInT\%)であり, CIFAR-10 と SVHN では0.1から0.3ポイント低い. 一方, 上下反転(\nUdT{}対\nTrainedUdT\%)と左右反転(\nHfT{}対\nTrainedHfT\%)は, 学習した分類器が大きく上回る.
+
+\subsection{CFS の評価手順での比較}
+\label{sec:cfs}
+CFS~\cite{rouzoumka2026cfs}は, CIFAR-10 で学習した1つの拡散モデルを, CIFAR-10, SVHN, CelebA の3つの分布内に共通に用い, 残りの2つと CIFAR-100, DTD を分布外とする12組で評価している. この手順に \method{} をそのまま当てはめた(補足資料の表~\ref{tab:cfsfull}). 分布内ごとに, その train 画像だけで正立ブロックを選んでバンクを作り, 各データセットの評価用の分割のすべての画像で評価した. この12組を見て変えたものはない. 12組の平均 AUROC は\nCfsAvg\%, 分布内ごとに最も低い組をとった平均は\nCfsWorst\%であり, 文献の公表値の最良(\nCfsBestAvg\%と\nCfsBestWorst\%)を\nCfsGap{}ポイントと\nCfsGapWorst{}ポイント上回る. 学習した2つの MLP を用いる構成(\nCfsTrainedAvg\%と\nCfsTrainedWorst\%)と比べると, 平均はわずかに低く, 最も低い組の平均は高い. なお, 公表値は文献の表からの引用であり, 前処理や枚数が本研究と同じとは限らない.
+
+\subsection{振幅の並びは何を見ているか}
+\label{sec:what}
+図~\ref{fig:profile}に, 振幅の並びのグループごとの平均を示す. 分布内の画像を上下反転しても, 入力に近いブロックでは振幅が変わらない. 局所的な処理では, 画像を反転しても, 特徴マップが同じように反転するだけだからである. 解像度の低いブロックに入ると振幅が下がりはじめ, 正立ブロックより先で大きく下がる(CIFAR-10 の正立ブロックでは, 標準偏差の1.9倍). 自然画像の分布外集合でも, 振幅は同じ側へ下がる. 向きを変えた train 画像は, 分布外の画像を1枚も使わずに, 「分布内でない画像で振幅が動く向き」を教えており, これが, 比が自然画像の分布外集合にも効く理由である. SVHN は例外で, 分布外の画像の振幅は入力側のブロックで逆に上がる.
+
+\section{考察と限界}
+\label{sec:limits}
+\textbf{上下反転と鏡像.} 上下反転した分布内の画像の検知(\nUdT\%)は, 学習した分類器を用いる構成(\nTrainedUdT\%)や回転の予測(\nRotUdT\%)に及ばず, 左右反転(\nHfT\%)も学習した鏡像の分類器(\nTrainedHfT\%)に及ばない. 最近傍の比は, 記述子の空間で正立と向き替えが離れているときにだけ効き, 学習した分類器のように, 向きを見分ける方向を探すことはしない.
+
+\textbf{SVHN.} SVHN では, 上下反転が\nUdSvhnT\%にとどまる. 数字には180度回しても数字に見えるものがあり, 向きを変えたバンクが正立のバンクから離れない. また, SVHN と他の自然画像の違いは, 低次の統計量にあって入力側のブロックに現れ(図~\ref{fig:profile}), 向きの読みやすさで選ぶ正立ブロックは, そこを指さない.
+
+\textbf{前提と評価の範囲.} 分布内に標準の向きがあることを前提とし, テクスチャや衛星画像のように向きをもたない領域では, 比は情報をもたない. バンクは train 画像の8倍の要素をもち, 枚数が多いときは近似最近傍探索が要る. $256{\times}256$ のモデルでは平均 AUROC が\nHrLsb\%と\nHrAdm\%にとどまり, 比は上下反転の検知だけを高める(補足資料~A.6). ImageNet-64 によく似た SSB-hard(\nPairSsbT\%)も難しい.
+
+\section{おわりに}
+train 画像を8通りの向きでノイズ除去器に通したバンクと, そこへの最近傍の距離だけで, 内容と向きの両方を測る \method{} を提案した. 勾配による学習も, 追加のネットワークも, ラベルも, 分布外の画像も用いず, 途中で打ち切る1回の順伝播で, 同じ拡散モデルを用いる先行研究の最良を上回り, 回転と鏡像の分類器を学習する構成も, 自然画像の分布外集合では下回らなかった. 向きを変えた分布内の画像は, 分布外の画像を使わずに得られる「分布内でない画像」の見本であり, 近傍を探す相手に加えるだけで役に立つ.
+
+\subsection*{{\normalsize 謝辞　水谷 伸さん}}
+
+\bibliographystyle{miru2025j-unsrt}
+\bibliography{refs}
+
+\onecolumn
+\raggedbottom
+\setlength{\intextsep}{6pt plus 2pt minus 2pt}
+\section*{補足資料}
+\renewcommand{\thetable}{A\arabic{table}}\setcounter{table}{0}
+\renewcommand{\thefigure}{A\arabic{figure}}\setcounter{figure}{0}
+
+\subsection*{A.1\quad 分布内データセットごとの構成}
+\label{sec:supp-models}
+表~\ref{tab:models}に, 分布内データセットごとの拡散モデルと, 選ばれたブロックを示す. 正立ブロックの選択 [式~\eqref{eq:A}]は, train 画像1万枚をバンクとし, ノイズの種0で行った. 次元 $d_g$ と平均 $m_R$ は, ノイズの種ごとに求めた. SVHN のモデルでは, 解像度ごとのブロックのまとまりを1つと数える. このモデルは解像度 $1{\times}1$ のブロックを3つ含み, そこでは振幅 [式~\eqref{eq:amp}]がすべての画像で同じ値になるので, 距離に寄与しない.
+\begin{table}[H]\centering\footnotesize\setlength{\tabcolsep}{5pt}
+\caption{分布内データセットごとの構成. FashionMNIST 以外は, 公開されている学習済みの重みを変更せずに用いた. ブロック：候補のブロックの数. U：正立ブロック(入力側から数えた番号と, その位置). $A$：正立ブロックでの $\max_R A_{b,R}$ [式~\eqref{eq:A}, \%]. X：打ち切りブロック(同じく番号. $z$ の長さに等しい). $d_f$, $d_z$：記述子の次元(ノイズの種0).}
+\label{tab:models}
+\begin{tabular}{@{}lclccccccc@{}}\toprule
+分布内 & 解像度 & 拡散モデル & train 画像 & ブロック & U & $A$ & X & $d_f$ & $d_z$\\\midrule
+\inputrows{supp_models.tex}
+\end{tabular}
+\end{table}
+
+\subsection*{A.2\quad 計算時間}
+\label{sec:supp-time}
+表~\ref{tab:time}に, 1枚あたりの計算時間を示す. GPU 1枚(バッチ128)で, 3バッチの空回しのあとの8バッチの中央値を測った. U まで, X までの時間は, ブロックごとの記述子の計算を含む. 探索は, 正立のバンク($N$ 個, 1000番目まで)と向き替えのバンク($7N$ 個, 7000番目まで)への最近傍の探索であり, 内積をすべて計算して上位を取り出している. 順伝播の比は, 記述子を読まずに各ブロックで順伝播を止めて, 別に測った(2バッチの空回しのあとの6バッチの中央値). 5つのモデルの平均は, 順伝播の比が U まで\nPassU, X まで\nPassX, 全体の比が U まで\nAllU, X まで\nAllX{}である(U で打ち切る場合の探索の時間には, X までの記述子で測った値を用いた). 全順伝播に train 画像との kNN を加えた時間は, 1回の順伝播の\nAllKnn{}倍である.
+\begin{table}[H]\centering\footnotesize\setlength{\tabcolsep}{5pt}
+\caption{1枚あたりの計算時間(GPU, バッチ128). 左の6列はミリ秒. 全順伝播：最後のブロックまで. U まで, X まで：そこで打ち切る順伝播(記述子の計算を含む). 探索：2つのバンクへの最近傍の探索. 合計：X までの順伝播と, 2つの記述子の探索の和. 順伝播の比：打ち切りまでの順伝播の時間を, 1回の順伝播の時間で割った値. 全体の比：記述子の計算と探索を含む時間を, 1回の順伝播の時間で割った値.}
+\label{tab:time}
+\begin{tabular}{@{}lcccccccccc@{}}\toprule
+& \multicolumn{3}{c}{順伝播(ミリ秒)} & \multicolumn{2}{c}{探索(ミリ秒)} & & \multicolumn{2}{c}{順伝播の比} & \multicolumn{2}{c}{全体の比}\\\cmidrule(lr){2-4}\cmidrule(lr){5-6}\cmidrule(lr){8-9}\cmidrule(lr){10-11}
+モデル(分布内) & 全順伝播 & U まで & X まで & $f$ & $z$ & 合計 & U まで & X まで & U まで & X まで\\\midrule
+\inputrows{supp_time.tex}
+\end{tabular}
+\end{table}
+
+\subsection*{A.3\quad 別に取り分けた画像での確認}
+\label{sec:supp-testp}
+test 画像とは別に, どの分割にも含まれない画像(\testp{} 画像. 各集合500枚)を取り分け, 確定した手法を1回評価した(表~\ref{tab:partsc}. \testp{} 画像も, test 画像と同じく, 以前の構成の評価に用いてきた). 自然画像の分布外集合での平均 AUROC は\nOursC\%(95\%信頼区間\nOursLoC--\nOursHiC)で, CFS の kNN ヘッド(\nPriorC\%)を\nGapPriorC{}ポイント(\nGapPriorLoC--\nGapPriorHiC)上回り, test 画像での差(\nGapPriorT{}ポイント)は縮まらない. 学習した2つの MLP を用いる構成(\nTrainedC\%)との差は\nGapTrainedC{}ポイント(\nGapTrainedLoC--\nGapTrainedHiC)であり, 上下反転は\nUdC{}対\nTrainedUdC\%である. 各部分の寄与の順序も, test 画像と変わらない.
+\begin{table}[H]\centering\footnotesize\setlength{\tabcolsep}{6pt}
+\caption{\testp{} 画像での結果(5つの分布内の平均. AUROC と FPR95, \%). 行と列は表~\ref{tab:parts}と同じである. 勝/分/負：\testp{} 画像の全51組での, \method{} のその行に対する結果.}
+\label{tab:partsc}
+\begin{tabular}{@{}lccccc@{}}\toprule
+構成 & 自然 & 上下 & 左右 & FPR95 & 勝/分/負\\\midrule
+\inputrows{supp_parts_c.tex}
+\end{tabular}
+\end{table}
+
+\subsection*{A.4\quad CFS の評価手順の各組}
+\label{sec:supp-cfs}
+表~\ref{tab:cfsfull}に, CFS の評価手順(\ref{sec:cfs}節)の12組の値を示す. 12組のうち\nCfsNWin{}組で公表値の最良に並ぶか上回り, 下回るのは CIFAR-10 を分布内とする CelebA(\nCfsCCel\%. SCOPED は\nCfsCCelPub\%)だけである. SVHN と CelebA の画像は拡散モデルの学習に用いられていないが, そのバンクとの近さで判定できている. CelebA を分布内とするときは, 正立ブロックが $16{\times}16$ にあり, 打ち切りブロックは最後のブロックになる. 学習した2つの MLP を用いる構成と比べると, CIFAR-10 を分布内とする CIFAR-100 では高く(\nCfsCHund{}対\nCfsCHundTrained\%), CelebA では低い(\nCfsCCel{}対\nCfsCCelTrained\%).
+\begin{table}[H]\centering\scriptsize\setlength{\tabcolsep}{2.5pt}
+\caption{CFS の評価手順の各組(AUROC, \%). CIFAR-10 で学習した1つの拡散モデルを3つの分布内に用いる12組. 上の7行は文献の公表値 [MSMA から CFS までは文献~\cite{rouzoumka2026cfs}の値. SCOPED は文献~\cite{barkley2026scoped}の値で, モデルは CelebA で学習した DDPM(DTD の値はなく, $*$ は9組の平均)], 下の2行は本研究の実行(ノイズの種3つの平均)であり, 参考の行は, 比の代わりに学習した2つの MLP を用いる構成である. 最悪：分布内ごとに最も低い組をとった3つの平均. 順伝播：1枚あたりの回数(SCOPED の+はヤコビアンとベクトルの積). $\dagger$：公表値の中の最良. \protect\colorbox{firstblue}{\textbf{水色の太字}}：\method{} がそれに並ぶか上回る列. $\ddagger$：打ち切りまでの計算時間を1回の順伝播の時間で割った値(3つの分布内の平均. CelebA では1とした).}
+\label{tab:cfsfull}
+\begin{adjustbox}{max width=\textwidth}\begin{tabular}{@{}lccccccccccccccc@{}}\toprule
+& \multicolumn{4}{c}{分布内：CIFAR-10} & \multicolumn{4}{c}{分布内：SVHN} & \multicolumn{4}{c}{分布内：CelebA} & & & \\\cmidrule(lr){2-5}\cmidrule(lr){6-9}\cmidrule(lr){10-13}
+手法 & SVHN & CelebA & CIFAR-100 & DTD & CIFAR-10 & CelebA & CIFAR-100 & DTD & CIFAR-10 & SVHN & CIFAR-100 & DTD & 平均 & 最悪 & 順伝播\\\midrule
+\inputrows{tab_cfs.tex}
+\end{tabular}\end{adjustbox}
+\end{table}
+
+\subsection*{A.5\quad 密度の読みと, 比の読み}
+\label{sec:supp-scatter}
+図~\ref{fig:scatter}に, CIFAR-10 での密度の読み $T_g$ と比の読み $Q_g$ を示す. 上下反転した分布内の画像は, 内容が分布内と同じなので, 密度の読みでは分布内の画像との重なりが残るが($z$ で著しい), 比の読みははっきり下がる. 自然画像の分布外集合は, 密度の読みも比の読みも下がる. 2つの読みは別の向きに分布外を押し出しており, 足すことで両方を捉える.
+\begin{figure}[H]\centering
+\input{figs/fig_scatter}
+\caption{密度の読み $T_g$ と比の読み $Q_g$(CIFAR-10, test 画像, ノイズの種0. 各70枚). 分布内の画像は右上に集まる. 上下反転した分布内の画像は, 密度の読みが分布内と重なっても, 比の読みが下がる. 自然画像の分布外集合は, どちらも下がる.}
+\label{fig:scatter}
+\end{figure}
+
+\subsection*{A.6\quad $256{\times}256$ のモデルでの確認}
+\label{sec:supp-hr}
+手法を変えずに, $256{\times}256$ の2つの拡散モデル(ADM~\cite{dhariwal2021adm}. LSUN の寝室で学習したものと, ImageNet で学習した条件なしのもの)で評価した(表~\ref{tab:hr}. \nHrSeeds). バンクは train 画像1万枚の8通りの向きである. 正立ブロックは式~\eqref{eq:A}で選び, LSUN の寝室ではデコーダの $8{\times}8$ のブロック($A=\nHrLsbA$), ImageNet ではデコーダの $16{\times}16$ のブロック($A=\nHrAdmA$)になる. 分布外集合は, LSUN の寝室に対しては LSUN のほかの屋内6カテゴリ(各300枚), ImageNet に対しては NINCO, iNaturalist, Textures, OpenImage-O, Places365(各1000枚)である. これらの画像も, 以前の構成の評価に用いてきた.
+
+自然画像の分布外集合での平均 AUROC は, LSUN の寝室で\nHrLsb\%(95\%信頼区間\nHrLsbLo--\nHrLsbHi), ImageNet で\nHrAdm\%(\nHrAdmLo--\nHrAdmHi)であり, 本文の5つの平均(\nOursT\%)に届かない. LSUN の寝室では CFS(\nHrLsbCfs\%. kNN ヘッドで\nHrLsbCfsKnn\%)を上回るが, 正立ブロックの密度だけの構成(\nHrLsbKnn\%)との差は$\nHrLsbGapKnn$ポイント($\nHrLsbGapKnnLo$--$\nHrLsbGapKnnHi$)で, 向きの比は自然画像の分布外集合の検知を高めていない. ImageNet では同じ構成を$\nHrAdmGapKnn$ポイント上回るが, これは振幅の並びを密度として加えた分であり, 比を使わない構成(\nHrAdmDens\%)との差は$\nHrAdmGapDens$ポイント($\nHrAdmGapDensLo$--$\nHrAdmGapDensHi$)である. 上下反転した分布内の画像の検知は, どちらのモデルでも比によって高まる(LSUN の寝室で\nHrLsbDensUd\%から\nHrLsbUd\%, ImageNet で\nHrAdmDensUd\%から\nHrAdmUd\%). 左右反転は偶然の水準にとどまる. X まで進めずに U で止めると, どちらのモデルでもわずかに高い(\nHrLsbStopU\%, \nHrAdmStopU\%). 向きの比が自然画像の分布外集合の検知を高めるという本文の結果は, この解像度では確かめられなかった.
+\begin{table}[H]\centering\scriptsize\setlength{\tabcolsep}{2.4pt}
+\caption{$256{\times}256$ のモデルでの結果(AUROC と FPR95, \%. \nHrSeeds). 行と列は表~\ref{tab:parts}と同じである. CFS は LSUN の寝室でだけ評価した.}
+\label{tab:hr}
+\begin{tabular}{@{}lcccccccc@{}}\toprule
+& \multicolumn{4}{c}{LSUN の寝室} & \multicolumn{4}{c}{ImageNet}\\\cmidrule(lr){2-5}\cmidrule(lr){6-9}
+構成 & 自然 & 上下 & 左右 & FPR95 & 自然 & 上下 & 左右 & FPR95\\\midrule
+\inputrows{supp_hr.tex}
+\end{tabular}
+\end{table}
+
+\subsection*{A.7\quad 全結果}
+\label{sec:supp-pairs}
+表~\ref{tab:pairst}と表~\ref{tab:pairsc}に, test 画像と \testp{} 画像での組ごとの AUROC を示す.
+\begin{table}[H]\centering\scriptsize\setlength{\tabcolsep}{6pt}\renewcommand{\arraystretch}{0.84}
+\caption{組ごとの AUROC(\%. test 画像, ノイズの種3つの平均). 先行研究の最良：同じ拡散モデルを用いる10手法のうち, その組で最も高いもの(名前を添える). U まで：正立ブロックで打ち切る場合. \protect\colorbox{firstblue}{水色}：\method{} がその値に勝つ組. \protect\colorbox{lossred}{赤}：負ける組(95\%信頼区間が0を含まず, 差が0.05ポイント以上). $\S$：左右反転は51組に含めない.}
+\label{tab:pairst}
+\begin{tabular}{@{}llccl@{}}\toprule
+分布内 & 分布外 & \method{} & U まで & 先行研究の最良\\\midrule
+\inputrows{supp_pairs_t.tex}
+\end{tabular}
+\end{table}
+
+\begin{table}[H]\centering\scriptsize\setlength{\tabcolsep}{6pt}\renewcommand{\arraystretch}{0.84}
+\caption{組ごとの AUROC(\%. \testp{} 画像, ノイズの種3つの平均). 色と記号は表~\ref{tab:pairst}と同じである.}
+\label{tab:pairsc}
+\begin{tabular}{@{}llccc@{}}\toprule
+分布内 & 分布外 & \method{} & CFS(kNN ヘッド) & U まで\\\midrule
+\inputrows{supp_pairs_c.tex}
+\end{tabular}
+\end{table}
+
+\end{document}

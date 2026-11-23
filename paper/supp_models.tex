@@ -1,0 +1,6 @@
+% written by gen/mk.py
+CIFAR-10 & $32{\times}32$ & EDM(VP, DDPM++)~\cite{karras2022edm} & 5万 & 34 & 21(デコーダ $8{\times}8$) & 85.4 & 28 & 13.4 & 11.6\\
+SVHN & $32{\times}32$ & VP-SDE~\cite{kamkari2024geometric} & 5万 & 13 & 10(デコーダ $8{\times}8$) & 82.7 & 11 & 17.9 & 6.5\\
+CelebA & $32{\times}32$ & iDDPM~\cite{nichol2021improved} & 5万 & 33 & 21(デコーダ $8{\times}8$) & 92.5 & 28 & 19.7 & 11.2\\
+ImageNet-64 & $64{\times}64$ & EDM2-XS(条件なし)~\cite{karras2024edm2} & 1万 & 37 & 19(デコーダ $8{\times}8$) & 72.2 & 27 & 14.5 & 9.2\\
+FashionMNIST & $32{\times}32$ & U-Net(EDMの前処理), 本研究で学習 & 5万 & 29 & 9(エンコーダ $8{\times}8$) & 93.8 & 25 & 11.9 & 9.0\\\bottomrule

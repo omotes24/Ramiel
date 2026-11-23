@@ -1,0 +1,143 @@
+\begin{thebibliography}{10}
+
+\bibitem{oquab2024dinov2}
+Oquab, M., Darcet, T., Moutakanni, T. et al.: {DINOv2}: Learning Robust Visual
+  Features without Supervision, {\em TMLR} (2024).
+
+\bibitem{radford2021clip}
+Radford, A., Kim, J.~W., Hallacy, C., Ramesh, A., Goh, G., Agarwal, S., Sastry,
+  G., Askell, A., Mishkin, P., Clark, J., Krueger, G. and Sutskever, I.:
+  Learning Transferable Visual Models from Natural Language Supervision, {\em
+  ICML} (2021).
+
+\bibitem{song2021score}
+Song, Y., Sohl-Dickstein, J., Kingma, D.~P., Kumar, A., Ermon, S. and Poole,
+  B.: Score-Based Generative Modeling through Stochastic Differential
+  Equations, {\em ICLR} (2021).
+
+\bibitem{karras2022edm}
+Karras, T., Aittala, M., Aila, T. and Laine, S.: Elucidating the Design Space
+  of Diffusion-Based Generative Models, {\em NeurIPS} (2022).
+
+\bibitem{nalisnick2019deep}
+Nalisnick, E., Matsukawa, A., Teh, Y.~W., Gorur, D. and Lakshminarayanan, B.:
+  Do Deep Generative Models Know What They Don't Know?, {\em ICLR} (2019).
+
+\bibitem{serra2020input}
+Serr{\`a}, J., {\'A}lvarez, D., G{\'o}mez, V., Slizovskaia, O., N{\'u}{\~n}ez,
+  J.~F. and Luque, J.: Input Complexity and Out-of-Distribution Detection with
+  Likelihood-Based Generative Models, {\em ICLR} (2020).
+
+\bibitem{mahmood2021msma}
+Mahmood, A., Oliva, J. and Styner, M.: Multiscale Score Matching for
+  Out-of-Distribution Detection, {\em ICLR} (2021).
+
+\bibitem{heng2024diffpath}
+Heng, A., Thiery, A.~H. and Soh, H.: Out-of-Distribution Detection with a
+  Single Unconditional Diffusion Model, {\em NeurIPS} (2024).
+
+\bibitem{alexis2026gepc}
+Rouzoumka, Y.~A., Pinsolle, J., Terreaux, E., Morisseau, C., Ovarlez, J.-P. and
+  Ren, C.: {GEPC}: Group-Equivariant Posterior Consistency for
+  Out-of-Distribution Detection in Diffusion Models, {\em ICML} (2026).
+
+\bibitem{shoushtari2026eigenscore}
+Shoushtari, S., Wang, Y., Shi, X., Asif, M.~S. and Kamilov, U.~S.:
+  {EigenScore}: {OOD} Detection Using Posterior Covariance in Diffusion Models,
+  {\em ICLR} (2026).
+
+\bibitem{xiang2023ddae}
+Xiang, W., Yang, H., Huang, D. and Wang, Y.: Denoising Diffusion Autoencoders
+  are Unified Self-Supervised Learners, {\em ICCV} (2023).
+
+\bibitem{rouzoumka2026cfs}
+Rouzoumka, Y.~A., Pinsolle, J., Terreaux, E., Morisseau, C., Ovarlez, J.-P. and
+  Ren, C.: Backbone-Equated Diffusion {OOD} via Sparse Internal Snapshots, {\em
+  NeurIPS} (2026).
+
+\bibitem{golan2018geometric}
+Golan, I. and El-Yaniv, R.: Deep Anomaly Detection Using Geometric
+  Transformations, {\em NeurIPS} (2018).
+
+\bibitem{hendrycks2019ss}
+Hendrycks, D., Mazeika, M., Kadavath, S. and Song, D.: Using Self-Supervised
+  Learning Can Improve Model Robustness and Uncertainty, {\em NeurIPS} (2019).
+
+\bibitem{tack2020csi}
+Tack, J., Mo, S., Jeong, J. and Shin, J.: {CSI}: Novelty Detection via
+  Contrastive Learning on Distributionally Shifted Instances, {\em NeurIPS}
+  (2020).
+
+\bibitem{wang2009divergence}
+Wang, Q., Kulkarni, S.~R. and Verd{\'u}, S.: Divergence Estimation for
+  Multidimensional Densities via $k$-Nearest-Neighbor Distances, {\em IEEE
+  Transactions on Information Theory},  Vol.~55, No.~5, pp.\ 2392--2405 (2009).
+
+\bibitem{nalisnick2019typ}
+Nalisnick, E., Matsukawa, A., Teh, Y.~W. and Lakshminarayanan, B.: Detecting
+  Out-of-Distribution Inputs to Deep Generative Models Using Typicality, {\em
+  arXiv:1906.02994} (2019).
+
+\bibitem{graham2023ddpmood}
+Graham, M.~S., Pinaya, W. H.~L., Tudosiu, P.-D., Nachev, P., Ourselin, S. and
+  Cardoso, M.~J.: Denoising Diffusion Models for Out-of-Distribution Detection,
+  {\em CVPR Workshops} (2023).
+
+\bibitem{barkley2026scoped}
+Barkley, B., Culbertson, P. and Fridovich-Keil, D.: {SCOPED}: Score-Curvature
+  Out-of-Distribution Proximity Evaluator for Diffusion, {\em Proc. ICLR}
+  (2026).
+
+\bibitem{kamkari2024geometric}
+Kamkari, H., Ross, B.~L., Cresswell, J.~C., Caterini, A.~L., Krishnan, R.~G.
+  and Loaiza-Ganem, G.: A Geometric Explanation of the Likelihood {OOD}
+  Detection Paradox, {\em ICML} (2024).
+
+\bibitem{sun2022knn}
+Sun, Y., Ming, Y., Zhu, X. and Li, Y.: Out-of-Distribution Detection with Deep
+  Nearest Neighbors, {\em ICML} (2022).
+
+\bibitem{lin2020chirality}
+Lin, Z., Sun, J., Davis, A. and Snavely, N.: Visual Chirality, {\em Proc. CVPR}
+  (2020).
+
+\bibitem{ren2019likelihood}
+Ren, J., Liu, P.~J., Fertig, E., Snoek, J., Poplin, R., DePristo, M.~A.,
+  Dillon, J.~V. and Lakshminarayanan, B.: Likelihood Ratios for
+  Out-of-Distribution Detection, {\em Proc. NeurIPS} (2019).
+
+\bibitem{hendrycks2019oe}
+Hendrycks, D., Mazeika, M. and Dietterich, T.: Deep Anomaly Detection with
+  Outlier Exposure, {\em Proc. ICLR} (2019).
+
+\bibitem{sugiyama2012density}
+Sugiyama, M., Suzuki, T. and Kanamori, T.: {\em Density Ratio Estimation in
+  Machine Learning}, Cambridge University Press (2012).
+
+\bibitem{ronneberger2015unet}
+Ronneberger, O., Fischer, P. and Brox, T.: {U-Net}: Convolutional Networks for
+  Biomedical Image Segmentation, {\em Proc. MICCAI} (2015).
+
+\bibitem{loftsgaarden1965knn}
+Loftsgaarden, D.~O. and Quesenberry, C.~P.: A Nonparametric Estimate of a
+  Multivariate Density Function, {\em The Annals of Mathematical Statistics},
+  Vol.~36, No.~3, pp.\ 1049--1051 (1965).
+
+\bibitem{nichol2021improved}
+Nichol, A.~Q. and Dhariwal, P.: Improved Denoising Diffusion Probabilistic
+  Models, {\em ICML} (2021).
+
+\bibitem{karras2024edm2}
+Karras, T., Aittala, M., Lehtinen, J., Hellsten, J., Aila, T. and Laine, S.:
+  Analyzing and Improving the Training Dynamics of Diffusion Models, {\em CVPR}
+  (2024).
+
+\bibitem{efron1979bootstrap}
+Efron, B.: Bootstrap Methods: Another Look at the Jackknife, {\em The Annals of
+  Statistics},  Vol.~7, No.~1, pp.\ 1--26 (1979).
+
+\bibitem{dhariwal2021adm}
+Dhariwal, P. and Nichol, A.: Diffusion Models Beat {GANs} on Image Synthesis,
+  {\em NeurIPS} (2021).
+
+\end{thebibliography}

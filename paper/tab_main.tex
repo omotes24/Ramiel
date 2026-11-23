@@ -1,0 +1,15 @@
+% written by gen/mk.py: AUROC (%) on test; wins / ties / losses of Ours over the 51 pairs
+NLL(尤度)~\cite{song2021score} & 57.4 & 99.3 & 80.9 & 54.6 & 32.8 & 65.0 & 57.7 & 62.2 & 37/8/6 & 128+128\\
+IC(PNG)~\cite{serra2020input} & 72.7 & 91.6 & 86.5 & 48.9 & 86.3 & 77.2 & 57.9 & 62.5 & 43/6/2 & 128+128\\
+IC(JPEG2000)~\cite{serra2020input} & 71.4 & 72.8 & 80.9 & 47.2 & 38.4 & 62.1 & 57.3 & 75.5 & 45/5/1 & 128+128\\
+TT~\cite{nalisnick2019typ} & 62.1 & 99.0 & 84.6 & 59.8 & 62.1 & 73.5 & 54.4 & 60.8 & 39/8/4 & 128+128\\
+MSMA型~\cite{mahmood2021msma} & 64.5 & 99.3 & 99.3 & 65.1 & 96.6 & 85.0 & 65.7 & 39.7 & 35/9/7 & 20\\
+DiffPath~\cite{heng2024diffpath} & 72.4 & 99.8$^{\dagger}$ & 99.8$^{\dagger}$ & 55.5 & 80.6 & 81.6 & 64.3 & 47.4 & 35/6/10 & 10\\
+GEPC~\cite{alexis2026gepc} & 49.9 & 92.0 & 99.0 & 52.0 & 83.9 & 75.4 & 52.5 & 62.4 & 47/4/0 & 14\\
+EigenScore~\cite{shoushtari2026eigenscore} & 72.8 & 86.3 & 87.4 & 45.2 & 93.8 & 77.1 & 78.6$^{\dagger}$ & 64.1 & 50/0/1 & 180\\
+CFS~\cite{rouzoumka2026cfs} & 74.9 & 91.0 & 99.4 & 65.5$^{\dagger}$ & 97.4 & 85.6 & 61.4 & 45.5 & 42/9/0 & 1\\
+CFS(kNN ヘッド)~\cite{rouzoumka2026cfs} & 85.4$^{\dagger}$ & 93.8 & 99.6 & 61.4 & 99.8$^{\dagger}$ & 88.0$^{\dagger}$ & 73.6 & 35.9$^{\dagger}$ & 43/8/0 & 1\\
+\midrule
+参考：回転の予測(ResNet-18)~\cite{hendrycks2019ss} & 85.9 & 95.1 & 100.0 & 61.4 & 99.3 & 88.3 & 93.9 & 36.2 & 34/13/4 & 4\\
+\midrule
+\textbf{Ours：\method} & \cellcolor{firstblue}\textbf{96.2} & 98.6 & \cellcolor{firstblue}\textbf{100.0} & \cellcolor{firstblue}\textbf{84.5} & \cellcolor{firstblue}\textbf{100.0} & \cellcolor{firstblue}\textbf{95.9} & \cellcolor{firstblue}\textbf{86.8} & \cellcolor{firstblue}\textbf{16.8} & -- & 0.54$^{\ddagger}$\\\bottomrule

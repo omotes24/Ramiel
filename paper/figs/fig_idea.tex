@@ -1,0 +1,45 @@
+% written by gen/mk_schem.py -- Figure 2: what the two readings see (schematic, drawn for R = 1; natural width about 8.3 cm).
+%   The same two banks in three panels: 6 navy dots = the upright train images (u), 42 grey squares = the train images in the seven
+%   other orientations (o).  The input (red star): (i) an ID image, (ii) an image whose orientation alone differs, (iii) an image whose
+%   content differs.  The solid circle passes through the nearest entry of u, the dashed circle through the 7th nearest entry of o.
+\begin{tikzpicture}[font=\figlab, line join=round, line cap=round, lab/.style={font=\figlab, inner sep=1pt, align=center}]
+\begin{scope}[shift={(0.00,0)}]
+  \draw[black!40, rounded corners=2pt] (0,0) rectangle (2.62,-2.3);
+  \foreach \p in {(0.420,-0.500),(0.800,-0.580),(0.280,-0.980),(0.660,-1.120),(0.980,-0.950),(0.550,-1.520)} \fill[navyc] \p circle (0.045);
+  \foreach \p in {(1.487,-0.346),(1.531,-0.508),(1.538,-0.743),(1.495,-0.909),(1.507,-1.142),(1.459,-1.335),(1.507,-1.616),(1.683,-0.279),(1.657,-0.555),(1.685,-0.754),(1.656,-0.924),(1.709,-1.149),(1.733,-1.377),(1.686,-1.582),(1.864,-0.365),(1.870,-0.572),(1.871,-0.719),(1.873,-0.953),(1.919,-1.204),(1.865,-1.403),(1.875,-1.591),(2.063,-0.298),(2.108,-0.501),(2.107,-0.762),(2.065,-0.925),(2.044,-1.182),(2.036,-1.354),(2.074,-1.541),(2.304,-0.278),(2.242,-0.540),(2.215,-0.726),(2.273,-0.941),(2.276,-1.162),(2.287,-1.357),(2.256,-1.604),(2.479,-0.318),(2.477,-0.554),(2.421,-0.776),(2.472,-0.923),(2.420,-1.144),(2.414,-1.380),(2.463,-1.575)} \fill[black!45] \p ++(-0.03,-0.03) rectangle ++(0.06,0.06);
+  \begin{scope} \clip (0.01,-0.01) rectangle (2.6100000000000003,-2.29);
+    \draw[navyc, line width=0.6pt] (0.620,-0.860) circle (0.263);
+    \draw[black!60, densely dashed, line width=0.6pt] (0.620,-0.860) circle (1.038);
+  \end{scope}
+  \node[star, star points=5, star point ratio=2.2, fill=redc, inner sep=1.0pt] at (0.620,-0.860) {};
+\end{scope}
+\begin{scope}[shift={(2.82,0)}]
+  \draw[black!40, rounded corners=2pt] (0,0) rectangle (2.62,-2.3);
+  \foreach \p in {(0.420,-0.500),(0.800,-0.580),(0.280,-0.980),(0.660,-1.120),(0.980,-0.950),(0.550,-1.520)} \fill[navyc] \p circle (0.045);
+  \foreach \p in {(1.487,-0.346),(1.531,-0.508),(1.538,-0.743),(1.495,-0.909),(1.507,-1.142),(1.459,-1.335),(1.507,-1.616),(1.683,-0.279),(1.657,-0.555),(1.685,-0.754),(1.656,-0.924),(1.709,-1.149),(1.733,-1.377),(1.686,-1.582),(1.864,-0.365),(1.870,-0.572),(1.871,-0.719),(1.873,-0.953),(1.919,-1.204),(1.865,-1.403),(1.875,-1.591),(2.063,-0.298),(2.108,-0.501),(2.107,-0.762),(2.065,-0.925),(2.044,-1.182),(2.036,-1.354),(2.074,-1.541),(2.304,-0.278),(2.242,-0.540),(2.215,-0.726),(2.273,-0.941),(2.276,-1.162),(2.287,-1.357),(2.256,-1.604),(2.479,-0.318),(2.477,-0.554),(2.421,-0.776),(2.472,-0.923),(2.420,-1.144),(2.414,-1.380),(2.463,-1.575)} \fill[black!45] \p ++(-0.03,-0.03) rectangle ++(0.06,0.06);
+  \begin{scope} \clip (0.01,-0.01) rectangle (2.6100000000000003,-2.29);
+    \draw[navyc, line width=0.6pt] (1.980,-0.950) circle (1.000);
+    \draw[black!60, densely dashed, line width=0.6pt] (1.980,-0.950) circle (0.294);
+  \end{scope}
+  \node[star, star points=5, star point ratio=2.2, fill=redc, inner sep=1.0pt] at (1.980,-0.950) {};
+\end{scope}
+\begin{scope}[shift={(5.64,0)}]
+  \draw[black!40, rounded corners=2pt] (0,0) rectangle (2.62,-2.3);
+  \foreach \p in {(0.420,-0.500),(0.800,-0.580),(0.280,-0.980),(0.660,-1.120),(0.980,-0.950),(0.550,-1.520)} \fill[navyc] \p circle (0.045);
+  \foreach \p in {(1.487,-0.346),(1.531,-0.508),(1.538,-0.743),(1.495,-0.909),(1.507,-1.142),(1.459,-1.335),(1.507,-1.616),(1.683,-0.279),(1.657,-0.555),(1.685,-0.754),(1.656,-0.924),(1.709,-1.149),(1.733,-1.377),(1.686,-1.582),(1.864,-0.365),(1.870,-0.572),(1.871,-0.719),(1.873,-0.953),(1.919,-1.204),(1.865,-1.403),(1.875,-1.591),(2.063,-0.298),(2.108,-0.501),(2.107,-0.762),(2.065,-0.925),(2.044,-1.182),(2.036,-1.354),(2.074,-1.541),(2.304,-0.278),(2.242,-0.540),(2.215,-0.726),(2.273,-0.941),(2.276,-1.162),(2.287,-1.357),(2.256,-1.604),(2.479,-0.318),(2.477,-0.554),(2.421,-0.776),(2.472,-0.923),(2.420,-1.144),(2.414,-1.380),(2.463,-1.575)} \fill[black!45] \p ++(-0.03,-0.03) rectangle ++(0.06,0.06);
+  \begin{scope} \clip (0.01,-0.01) rectangle (2.6100000000000003,-2.29);
+    \draw[navyc, line width=0.6pt] (1.220,-2.030) circle (0.842);
+    \draw[black!60, densely dashed, line width=0.6pt] (1.220,-2.030) circle (0.933);
+  \end{scope}
+  \node[star, star points=5, star point ratio=2.2, fill=redc, inner sep=1.0pt] at (1.220,-2.030) {};
+\end{scope}
+\node[lab, anchor=south] at (1.31,0.05) {\textbf{(i)}\ 分布内の画像};
+\node[lab, anchor=south] at (4.13,0.05) {\textbf{(ii)}\ 向きだけが異なる画像};
+\node[lab, anchor=south] at (6.95,0.05) {\textbf{(iii)}\ 内容が異なる画像};
+\node[lab, anchor=north, align=center] at (1.31,-2.36) {$u$ に近く, $o$ から遠い\\密度：高い,\ 比：高い};
+\node[lab, anchor=north, align=center] at (4.13,-2.36) {$u$ より $o$ に近い\\\textcolor{redc}{比：低い}};
+\node[lab, anchor=north, align=center] at (6.95,-2.36) {$u$ からも $o$ からも遠い\\\textcolor{redc}{密度：低い}};
+\fill[navyc] (0.12,-3.28) circle (0.045); \node[lab, anchor=west, text=navyc] at (0.2,-3.28) {正立の train 画像($u$)};
+\fill[black!45] (2.72,-3.31) rectangle ++(0.06,0.06); \node[lab, anchor=west, text=black!75] at (2.84,-3.28) {向きを変えた train 画像($o$)};
+\node[star, star points=5, star point ratio=2.2, fill=redc, inner sep=0.9pt] at (6.2,-3.28) {}; \node[lab, anchor=west] at (6.3,-3.28) {入力};
+\end{tikzpicture}

@@ -1,0 +1,2 @@
+# CPU side: paper/gen/mk.py and paper/gen/mk_schem.py (the numbers, tables and data figures of the paper) need only the Python standard library.
+# paper/: pLaTeX + pbibtex + dvipdfmx (TeX Live), latexmk; the PDF embeds the HaranoAji fonts (latexmkrc).

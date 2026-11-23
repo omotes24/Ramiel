@@ -1,0 +1,44 @@
+% written by gen/mk.py from data/fig_small.json (test images, noise seed 0)
+\begin{tikzpicture}
+\begin{groupplot}[group style={group size=5 by 1, horizontal sep=8mm}, width=41mm, height=32mm, unbounded coords=jump,
+  tick label style={font=\figlab}, title style={font=\scriptsize, yshift=-1.5mm, text height=1.6ex, text depth=0.3ex}, xlabel style={font=\figlab}, ylabel style={font=\figlab}, xlabel={ブロック(入力側 $\rightarrow$ 出力側)}, every axis plot/.append style={line width=0.7pt},
+  legend style={font=\figlab, draw=none, fill=none, legend columns=4, /tikz/every even column/.append style={column sep=3mm}}]
+\nextgroupplot[title={CIFAR-10}, ylabel={振幅(標準偏差を単位)}, legend to name=profleg]
+\draw[navyc!70, densely dotted, line width=0.6pt] (axis cs:21,\pgfkeysvalueof{/pgfplots/ymin}) -- (axis cs:21,\pgfkeysvalueof{/pgfplots/ymax}) node[pos=0.93, right, inner sep=1pt, font=\figlab, text=navyc] {U};
+\draw[redc!80, densely dotted, line width=0.6pt] (axis cs:28,\pgfkeysvalueof{/pgfplots/ymin}) -- (axis cs:28,\pgfkeysvalueof{/pgfplots/ymax}) node[pos=0.78, left, inner sep=1pt, font=\figlab, text=redc] {X};
+\addplot[navyc] coordinates {(1,-0.01) (2,0.01) (3,0.04) (4,0.03) (5,0.05) (6,-0.02) (7,-0.02) (8,-0.01) (9,-0.06) (10,-0.04) (11,-0.08) (12,-0.09) (13,-0.15) (14,-0.15) (15,-0.03) (16,0.0) (17,0.0) (18,-0.01) (19,-0.12) (20,-0.21) (21,-0.22) (22,-0.18) (23,-0.17) (24,-0.15) (25,-0.19) (26,-0.2) (27,-0.21) (28,-0.18)};
+\addplot[redc] coordinates {(1,-0.01) (2,0.01) (3,0.04) (4,0.05) (5,0.06) (6,-0.03) (7,-0.08) (8,-0.19) (9,-0.36) (10,-0.42) (11,-0.62) (12,-0.79) (13,-1.04) (14,-1.06) (15,-0.2) (16,-0.09) (17,-0.12) (18,-0.12) (19,-0.69) (20,-1.45) (21,-1.91) (22,-1.9) (23,-1.91) (24,-1.79) (25,-1.83) (26,-1.81) (27,-1.67) (28,-1.34)};
+\addplot[redc, densely dashed] coordinates {(1,-0.0) (2,-0.0) (3,-0.01) (4,-0.0) (5,-0.02) (6,-0.0) (7,-0.1) (8,-0.28) (9,-0.5) (10,-0.52) (11,-0.65) (12,-0.78) (13,-0.96) (14,-1.03) (15,-0.38) (16,-0.24) (17,-0.31) (18,-0.18) (19,-0.72) (20,-1.37) (21,-1.82) (22,-1.87) (23,-1.88) (24,-1.61) (25,-1.67) (26,-1.66) (27,-1.54) (28,-1.25)};
+\addplot[black] coordinates {(1,-0.35) (2,-0.32) (3,-0.28) (4,-0.27) (5,-0.08) (6,-0.41) (7,-0.68) (8,-0.9) (9,-0.69) (10,-1.0) (11,-1.3) (12,-1.4) (13,-1.43) (14,-1.3) (15,-1.26) (16,-1.31) (17,-1.39) (18,-1.25) (19,-1.46) (20,-1.78) (21,-2.25) (22,-2.61) (23,-2.59) (24,-1.96) (25,-1.85) (26,-1.81) (27,-2.09) (28,-1.68)};
+\legend{分布内の画像, 上下反転した分布内の画像, 向きを変えた train 画像(7 通り), 自然画像の分布外集合(平均)}
+\nextgroupplot[title={SVHN}]
+\draw[navyc!70, densely dotted, line width=0.6pt] (axis cs:10,\pgfkeysvalueof{/pgfplots/ymin}) -- (axis cs:10,\pgfkeysvalueof{/pgfplots/ymax}) node[pos=0.93, right, inner sep=1pt, font=\figlab, text=navyc] {U};
+\draw[redc!80, densely dotted, line width=0.6pt] (axis cs:11,\pgfkeysvalueof{/pgfplots/ymin}) -- (axis cs:11,\pgfkeysvalueof{/pgfplots/ymax}) node[pos=0.78, left, inner sep=1pt, font=\figlab, text=redc] {X};
+\addplot[navyc] coordinates {(1,-0.32) (2,-0.14) (3,0.06) (4,0.1) (5,0) (6,0) (7,0) (8,-0.07) (9,0.06) (10,0.21) (11,0.36)};
+\addplot[redc] coordinates {(1,-0.32) (2,-0.18) (3,-0.06) (4,-0.1) (5,0) (6,0) (7,0) (8,-0.15) (9,-0.21) (10,-0.28) (11,0.17)};
+\addplot[redc, densely dashed] coordinates {(1,0.01) (2,0.06) (3,-0.02) (4,-0.2) (5,0) (6,0) (7,0) (8,-0.09) (9,-0.33) (10,-0.7) (11,-0.66)};
+\addplot[black] coordinates {(1,1.63) (2,2.19) (3,1.41) (4,0.59) (5,0) (6,0) (7,0) (8,0.1) (9,0.15) (10,-0.53) (11,-0.15)};
+\nextgroupplot[title={CelebA}]
+\draw[navyc!70, densely dotted, line width=0.6pt] (axis cs:21,\pgfkeysvalueof{/pgfplots/ymin}) -- (axis cs:21,\pgfkeysvalueof{/pgfplots/ymax}) node[pos=0.93, right, inner sep=1pt, font=\figlab, text=navyc] {U};
+\draw[redc!80, densely dotted, line width=0.6pt] (axis cs:28,\pgfkeysvalueof{/pgfplots/ymin}) -- (axis cs:28,\pgfkeysvalueof{/pgfplots/ymax}) node[pos=0.78, left, inner sep=1pt, font=\figlab, text=redc] {X};
+\addplot[navyc] coordinates {(1,-0.06) (2,-0.05) (3,-0.04) (4,-0.04) (5,-0.06) (6,-0.06) (7,-0.06) (8,-0.05) (9,-0.04) (10,-0.06) (11,-0.06) (12,-0.1) (13,-0.14) (14,-0.16) (15,-0.18) (16,-0.21) (17,-0.32) (18,-0.4) (19,-0.42) (20,-0.45) (21,-0.48) (22,-0.44) (23,-0.47) (24,-0.43) (25,-0.31) (26,-0.3) (27,-0.19) (28,-0.11)};
+\addplot[redc] coordinates {(1,-0.06) (2,-0.06) (3,-0.04) (4,0.05) (5,0.0) (6,-0.03) (7,-0.05) (8,-0.15) (9,-0.64) (10,-0.58) (11,-0.74) (12,-0.56) (13,-0.08) (14,-0.19) (15,-0.24) (16,-0.37) (17,-0.93) (18,-0.94) (19,-0.86) (20,-0.81) (21,-2.06) (22,-2.34) (23,-3.16) (24,-3.31) (25,-5.93) (26,-5.83) (27,-4.1) (28,-3.22)};
+\addplot[redc, densely dashed] coordinates {(1,0.01) (2,0.01) (3,0.03) (4,0.08) (5,0.08) (6,0.01) (7,-0.02) (8,-0.09) (9,-0.57) (10,-0.61) (11,-0.78) (12,-0.52) (13,0.11) (14,0.05) (15,0.04) (16,-0.05) (17,-0.6) (18,-0.58) (19,-0.47) (20,-0.57) (21,-2.01) (22,-2.2) (23,-3.07) (24,-3.53) (25,-7.24) (26,-6.09) (27,-4.31) (28,-3.31)};
+\addplot[black] coordinates {(1,-0.58) (2,-0.19) (3,0.05) (4,0.39) (5,0.02) (6,-0.37) (7,-0.12) (8,-0.16) (9,-2.41) (10,-2.66) (11,-2.92) (12,-2.44) (13,-1.41) (14,-1.43) (15,-1.39) (16,-1.42) (17,-1.93) (18,-1.49) (19,-1.16) (20,-1.27) (21,-2.87) (22,-3.21) (23,-4.57) (24,-5.32) (25,-10.53) (26,-8.44) (27,-5.73) (28,-4.09)};
+\nextgroupplot[title={ImageNet-64}]
+\draw[navyc!70, densely dotted, line width=0.6pt] (axis cs:19,\pgfkeysvalueof{/pgfplots/ymin}) -- (axis cs:19,\pgfkeysvalueof{/pgfplots/ymax}) node[pos=0.93, right, inner sep=1pt, font=\figlab, text=navyc] {U};
+\draw[redc!80, densely dotted, line width=0.6pt] (axis cs:27,\pgfkeysvalueof{/pgfplots/ymin}) -- (axis cs:27,\pgfkeysvalueof{/pgfplots/ymax}) node[pos=0.78, left, inner sep=1pt, font=\figlab, text=redc] {X};
+\addplot[navyc] coordinates {(1,0.02) (2,0.05) (3,0.08) (4,0.1) (5,0.05) (6,0.09) (7,0.08) (8,0.07) (9,0.04) (10,0.1) (11,0.15) (12,0.19) (13,-0.15) (14,-0.15) (15,-0.02) (16,0.03) (17,0.07) (18,0.04) (19,-0.03) (20,-0.09) (21,-0.05) (22,0.0) (23,0.01) (24,0.08) (25,0.08) (26,0.08) (27,0.1)};
+\addplot[redc] coordinates {(1,0.01) (2,0.06) (3,0.08) (4,0.09) (5,0.05) (6,0.07) (7,0.07) (8,0.07) (9,0.03) (10,0.06) (11,0.04) (12,0.01) (13,-0.24) (14,-0.31) (15,-0.39) (16,-0.49) (17,-0.59) (18,-0.69) (19,-0.81) (20,-0.91) (21,-0.94) (22,-0.88) (23,-0.87) (24,-0.71) (25,-0.67) (26,-0.62) (27,-0.53)};
+\addplot[redc, densely dashed] coordinates {(1,-0.0) (2,0.0) (3,-0.0) (4,0.0) (5,0.0) (6,-0.02) (7,-0.02) (8,-0.01) (9,-0.01) (10,-0.06) (11,-0.1) (12,-0.15) (13,-0.07) (14,-0.11) (15,-0.31) (16,-0.44) (17,-0.56) (18,-0.62) (19,-0.7) (20,-0.72) (21,-0.78) (22,-0.74) (23,-0.75) (24,-0.69) (25,-0.67) (26,-0.62) (27,-0.56)};
+\addplot[black] coordinates {(1,-0.24) (2,-0.33) (3,-0.45) (4,-0.44) (5,-0.57) (6,-0.74) (7,-0.78) (8,-0.65) (9,-0.7) (10,-0.89) (11,-1.08) (12,-1.35) (13,-0.11) (14,-0.16) (15,-0.98) (16,-1.23) (17,-1.28) (18,-1.3) (19,-1.31) (20,-1.19) (21,-1.2) (22,-1.28) (23,-1.19) (24,-1.33) (25,-1.23) (26,-1.16) (27,-1.26)};
+\nextgroupplot[title={FashionMNIST}]
+\draw[navyc!70, densely dotted, line width=0.6pt] (axis cs:9,\pgfkeysvalueof{/pgfplots/ymin}) -- (axis cs:9,\pgfkeysvalueof{/pgfplots/ymax}) node[pos=0.93, right, inner sep=1pt, font=\figlab, text=navyc] {U};
+\draw[redc!80, densely dotted, line width=0.6pt] (axis cs:25,\pgfkeysvalueof{/pgfplots/ymin}) -- (axis cs:25,\pgfkeysvalueof{/pgfplots/ymax}) node[pos=0.78, left, inner sep=1pt, font=\figlab, text=redc] {X};
+\addplot[navyc] coordinates {(1,-0.04) (2,-0.04) (3,0.01) (4,-0.01) (5,-0.04) (6,-0.05) (7,-0.05) (8,-0.06) (9,-0.04) (10,-0.03) (11,0.01) (12,0.07) (13,0.06) (14,0.05) (15,0.09) (16,0.07) (17,0.03) (18,0.03) (19,0.03) (20,-0.02) (21,-0.06) (22,-0.06) (23,-0.05) (24,-0.06) (25,-0.06)};
+\addplot[redc] coordinates {(1,-0.03) (2,-0.08) (3,0.25) (4,0.24) (5,0.18) (6,-0.58) (7,-0.39) (8,-0.97) (9,-1.1) (10,-0.6) (11,-0.63) (12,-0.06) (13,-0.45) (14,-0.29) (15,0.28) (16,0.37) (17,-0.15) (18,-0.06) (19,-0.48) (20,-1.97) (21,-2.51) (22,-2.67) (23,-2.54) (24,-1.94) (25,-0.87)};
+\addplot[redc, densely dashed] coordinates {(1,0.01) (2,-0.01) (3,0.21) (4,0.2) (5,0.07) (6,-0.46) (7,-0.34) (8,-0.83) (9,-0.94) (10,-0.15) (11,-0.17) (12,0.05) (13,-0.31) (14,-0.22) (15,0.21) (16,0.45) (17,0.24) (18,0.19) (19,-0.12) (20,-1.67) (21,-2.3) (22,-2.52) (23,-2.32) (24,-1.9) (25,-1.23)};
+\addplot[black] coordinates {(1,1.74) (2,1.39) (3,-0.35) (4,0.74) (5,1.28) (6,0.27) (7,0.2) (8,-0.79) (9,-1.3) (10,-1.35) (11,-1.31) (12,-0.94) (13,-0.96) (14,-0.86) (15,-0.33) (16,0.06) (17,-0.7) (18,-0.61) (19,-1.06) (20,-3.02) (21,-2.96) (22,-3.25) (23,-3.02) (24,-2.41) (25,-1.79)};
+\end{groupplot}
+\end{tikzpicture}\\[-0.5mm]
+\pgfplotslegendfromname{profleg}

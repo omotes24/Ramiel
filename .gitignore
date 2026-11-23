@@ -1,0 +1,19 @@
+# data, checkpoints, run outputs and third-party code are not part of the repository (paths from the repository root)
+/data/
+/ckpt/
+/ext/
+/logs/
+/runs/
+__pycache__/
+*.pyc
+.DS_Store
+._*
+# LaTeX build files
+*.aux
+*.log
+*.dvi
+*.fls
+*.fdb_latexmk
+*.blg
+*.out
+*.synctex.gz
