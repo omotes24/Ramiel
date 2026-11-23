@@ -13,7 +13,7 @@
 \usepackage[dvipdfmx,table]{xcolor}
 \definecolor{firstblue}{RGB}{189,215,238}   % cells where Ours ties or beats the best prior method (light blue)
 \definecolor{lossred}{RGB}{246,200,192}      % per-pair tables: the comparison value is above Ours (light red)
-\definecolor{navyc}{RGB}{31,58,122}\definecolor{redc}{RGB}{192,57,43}
+\definecolor{navyc}{RGB}{31,58,122}\definecolor{redc}{RGB}{192,57,43}\definecolor{markpurple}{RGB}{75,42,123}
 \usepackage{amsmath,amssymb}
 \usepackage{booktabs}
 \usepackage{multirow}
@@ -32,6 +32,10 @@
 \newcommand{\Dm}{\mathbf{D}}            % a rotation / reflection of the image (a matrix: bold)
 \newcommand{\testp}{test$'$}
 \newcommand{\method}{BURST}               % the name of the method: change it here (and nowhere else)
+% the mark beside the name in the title: a burst of eight rays, one per orientation of the square (the upright one dark)
+\DeclareRobustCommand{\burstmark}{\tikz[baseline=-0.37em, x=1em, y=1em]{\foreach \k in {0,...,7}{%
+  \pgfmathsetmacro{\rr}{ifthenelse(mod(\k,2)==0,0.66,0.47)}\ifnum\k=0 \def\cc{markpurple}\else\def\cc{markpurple!42}\fi
+  \fill[\cc, rotate=-45*\k] (0,0.12) -- (0.082,0.28) -- (0,\rr) -- (-0.082,0.28) -- cycle;}}}
 \newcommand{\figlab}{\fontsize{6.2}{7.6}\selectfont}   % the labels inside the hand-drawn figures
 \makeatletter\newcommand{\inputrows}[1]{\@@input #1 }\makeatother
 \renewcommand{\eqref}[1]{(\ref{#1})}
@@ -51,7 +55,7 @@
 \hyphenation{FashionMNIST ImageNet EigenScore DiffPath}
 \raggedbottom
 \begin{document}
-\title{\textbf{\method：最近傍だけで内容と向きを測る\\拡散モデルの分布外検知}}
+\title{\textbf{\burstmark\hspace{0.22em}\method：最近傍で内容と向きを測る\\拡散モデルの分布外検知}}
 \affiliate{sfc}{慶應義塾大学 総合政策学部B3 中澤・大越研究室 d-hacks}
 \affiliate{sfc2}{慶應義塾大学大学院 政策・メディア研究科}
 \author{omote}{}{sfc}[]
