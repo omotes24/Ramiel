@@ -13,9 +13,10 @@ a978570beffb6546c4c0868b40ec59cc  sx_e_bench.py
 c3798c077ec89f64de281738954c5744  sx_e_terms.py
 87e92ce5573333602cf40c416290cbac  sx_g_eval.py
 b110b03fc1e6bb929f20e79d1eb57525  sx_g_extract.py
+cc07b08d2d32e81a51299e5b6e22864c  sx_g_run.sh
+6bf2a098ec96584ceaa82012cc1dee77  sx_g_small.py
 9a907f96edb79d7f2d7557bbc6caa0d5  sx_tv_extract.py
 2c3f38a78d50581f821e6fdb272712fd  sx_un_extract.py
 00652cd298925d05520727bee35d5e66  tc3_depth.py
 4e40718633e509b1b5350cd7e023f301  tc3_feat.py
 0fac048af6239216d013c2ef882a5bdd  up_extract.py
-cc07b08d2d32e81a51299e5b6e22864c  sx_g_run.sh

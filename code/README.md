@@ -39,6 +39,7 @@
 | `tc3_feat.py`, `tc3_depth.py` | すべてのブロックの特徴と、ブロック U の選択 |
 | `sx_g_extract.py`, `sx_g_run.sh` | バンクの 8 通りの向きと test の各集合の $f$ と振幅の並び(X で止める順伝播) |
 | `sx_g_eval.py` | 評価(項の計算は `sx_e_terms.py` と同じ) |
+| `sx_g_small.py` | 評価の結果から、論文が使う数値を取り出す(`../paper/data/hr256.json`) |
 
 ## 入っていないもの
 
