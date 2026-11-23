@@ -211,9 +211,11 @@ for t, q in (('lsb256', 'Lsb'), ('adm256c', 'Adm')):
     pe = h['pairs']['E2']; num(f'Hr{q}PairMax', rd(max(pe.values()))); num(f'Hr{q}PairMin', rd(min(pe.values()))); num(f'Hr{q}A', rd(h['A'])); num(f'Hr{q}U', str(h['U'])); num(f'Hr{q}X', str(h['X'])); num(f'Hr{q}Blocks', str(h['nB']))
     num(f'Hr{q}Nid', str(h['n_id'])); num(f'Hr{q}DimF', rd(h['d']['f'])); num(f'Hr{q}DimZ', rd(h['d']['zX']))
 num('HrLsbCfs', rd(HR['lsb256']['cfs']['diag'][0])); num('HrLsbCfsKnn', rd(HR['lsb256']['cfs']['knn'][0]))
+A_ = HR['adm256c']; num('HrAdmCfs', rd(A_['cfs']['diag'][0])); num('HrAdmCfsKnn', rd(A_['cfs']['knn'][0])); num('HrAdmGapCfs', sg(A_['rows']['E2'][0] - A_['cfs']['diag'][0])); num('HrAdmGapCfsLo', sg(A_['ci']['E2-CFS_diag'][0])); num('HrAdmGapCfsHi', sg(A_['ci']['E2-CFS_diag'][1]))
+num('HrAdmGapCfsKnn', sg(A_['rows']['E2'][0] - A_['cfs']['knn'][0])); num('HrLsbGapCfs', sg(HR['lsb256']['rows']['E2'][0] - HR['lsb256']['cfs']['diag'][0])); num('HrAdmCfsOpen', rd(A_['pairs']['CFS_diag']['openimage_o'])); num('HrAdmOpen', rd(A_['pairs']['E2']['openimage_o']))
 num('HrSeeds', 'ノイズの種0' if HR['lsb256']['seeds'] == [0] else 'ノイズの種3つの平均'); assert HR['lsb256']['seeds'] == HR['adm256c']['seeds'] and HR['lsb256']['seeds'] in ([0], [0, 1, 2])
 hrow = lambda lab, k: lab + ' & ' + ' & '.join(rd(v) for t in ('lsb256', 'adm256c') for v in HR[t]['rows'][k]) + '\\\\'
-crow = lambda lab, k: lab + ' & ' + ' & '.join(rd(v) for v in HR['lsb256']['cfs'][k]) + ' & -- & -- & -- & -- & --\\\\'
+crow = lambda lab, k: lab + ' & ' + ' & '.join(rd(v) for t in ('lsb256', 'adm256c') for v in HR[t]['cfs'][k]) + '\\\\'
 W['supp_hr.tex'] = '\n'.join(['% written by gen/mk.py: the 256x256 models (AUROC %, FPR95 %)', hrow('\\textbf{\\method}\\,($J_f+J_z$)', 'E2') + '\\midrule', hrow('$J_f$ だけ', 'Jf'), hrow('$J_z$ だけ', 'Jz'), hrow('$T_f+J_z$', 'TfJz'),
                               hrow('$T_f+T_z$\\,(比を使わない)', 'TfTz'), hrow('$T_f$\\,(U の密度だけ)', 'Tf'), hrow('$T_f+Q_f+T_z+Q_z$', 'four') + '\\midrule', hrow('U で止める', 'E1') + '\\midrule',
                               crow('CFS~\\cite{rouzoumka2026cfs}', 'diag'), crow('CFS(kNN ヘッド)~\\cite{rouzoumka2026cfs}', 'knn') + '\\bottomrule']) + '\n'

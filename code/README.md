@@ -40,6 +40,7 @@
 | `sx_g_extract.py`, `sx_g_run.sh` | バンクの 8 通りの向きと test の各集合の $f$ と振幅の並び(X で止める順伝播) |
 | `sx_g_eval.py` | 評価(項の計算は `sx_e_terms.py` と同じ) |
 | `sx_g_small.py` | 評価の結果から、論文が使う数値を取り出す(`../paper/data/hr256.json`) |
+| `sx_h_cfs.py`, `sx_h_eval.py` | ImageNet 256×256 の同じ画像での CFS(比較手法のスクリプト `cfs_extract_x.py`, `cfs_score.py` を呼ぶ。それらは入っていない)と、その評価 |
 
 ## 入っていないもの
 

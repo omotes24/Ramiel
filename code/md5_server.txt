@@ -15,6 +15,8 @@ c3798c077ec89f64de281738954c5744  sx_e_terms.py
 b110b03fc1e6bb929f20e79d1eb57525  sx_g_extract.py
 cc07b08d2d32e81a51299e5b6e22864c  sx_g_run.sh
 6bf2a098ec96584ceaa82012cc1dee77  sx_g_small.py
+e363f511a561a03bec3827d455a00e77  sx_h_cfs.py
+f6f0524d57b569171b3caa84949c8f00  sx_h_eval.py
 9a907f96edb79d7f2d7557bbc6caa0d5  sx_tv_extract.py
 2c3f38a78d50581f821e6fdb272712fd  sx_un_extract.py
 00652cd298925d05520727bee35d5e66  tc3_depth.py
